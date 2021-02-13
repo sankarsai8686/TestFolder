@@ -1,1 +1,83 @@
 Sankara Sai B
+
+
+$ git --version
+git version 2.30.1.windows.1
+Sankar@LAPTOP-BEEVE6MT MINGW64 ~
+$ git config --global user.name "sankarsai8686"
+
+Sankar@LAPTOP-BEEVE6MT MINGW64 ~
+$ git config --global user.email "sankarsai8686@gmail.com"
+
+Sankar@LAPTOP-BEEVE6MT MINGW64 ~
+$ git config --global --list
+user.name=sankarsai8686
+user.email=sankarsai8686@gmail.com
+
+
+$ git help config
+
+Sankar@LAPTOP-BEEVE6MT MINGW64 ~
+$ cd d:
+
+Sankar@LAPTOP-BEEVE6MT MINGW64 /d
+$ ls
+'$RECYCLE.BIN'/   SANKARA_SAI_B/  'System Volume Information'/
+
+Sankar@LAPTOP-BEEVE6MT MINGW64 /d
+$ cd SANKARA_SAI_B/
+
+Sankar@LAPTOP-BEEVE6MT MINGW64 /d/SANKARA_SAI_B
+$ cd TestFolder/git/
+
+Sankar@LAPTOP-BEEVE6MT MINGW64 /d/SANKARA_SAI_B/TestFolder/git
+$ git init
+Initialized empty Git repository in D:/SANKARA_SAI_B/TestFolder/git/.git/
+
+Sankar@LAPTOP-BEEVE6MT MINGW64 /d/SANKARA_SAI_B/TestFolder/git (master)
+$ git status
+On branch master
+
+No commits yet
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+        Demo.txt
+
+nothing added to commit but untracked files present (use "git add" to track)
+
+Sankar@LAPTOP-BEEVE6MT MINGW64 /d/SANKARA_SAI_B/TestFolder/git (master)
+$ git add Demo.txt
+
+Sankar@LAPTOP-BEEVE6MT MINGW64 /d/SANKARA_SAI_B/TestFolder/git (master)
+$ git status
+On branch master
+
+No commits yet
+
+Changes to be committed:
+  (use "git rm --cached <file>..." to unstage)
+        new file:   Demo.txt
+
+
+Sankar@LAPTOP-BEEVE6MT MINGW64 /d/SANKARA_SAI_B/TestFolder/git (master)
+$ git commit -m "commit"
+[master (root-commit) 09547b2] commit
+ 1 file changed, 1 insertion(+)
+ create mode 100644 Demo.txt
+
+Sankar@LAPTOP-BEEVE6MT MINGW64 /d/SANKARA_SAI_B/TestFolder/git (master)
+$ git remote add origin https://github.com/sankarsai8686/TestFolder.git
+
+Sankar@LAPTOP-BEEVE6MT MINGW64 /d/SANKARA_SAI_B/TestFolder/git (master)
+$ git push origin master
+
+
+Enumerating objects: 3, done.
+Counting objects: 100% (3/3), done.
+Writing objects: 100% (3/3), 217 bytes | 217.00 KiB/s, done.
+Total 3 (delta 0), reused 0 (delta 0), pack-reused 0
+To https://github.com/sankarsai8686/TestFolder.git
+ * [new branch]      master -> master
+
+
