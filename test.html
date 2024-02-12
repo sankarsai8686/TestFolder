@@ -16,7 +16,7 @@
 
     <!-- Include DataTables library -->
     <script type="text/javascript" src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
-
+	
     <!-- DataTables Initialization -->
     <script>
         $(document).ready(function() {
@@ -75,6 +75,8 @@
     color: #6c757d;
     border: 1px solid #ddd;
     cursor: not-allowed;
+     /* pointer-events: none;  */ /* Disable pointer events to make the entire button not clickable */
+    opacity: 0.5;  /* Adjust opacity for a visual indication of disabled state */
 }
     </style>
 </head>
@@ -115,8 +117,8 @@
 
             <!-- "Next" link -->
             <li th:class="${currentPage == totalPages-1} ? 'disabled' : ''">
-                <a th:if="${currentPage < totalPages}" th:href="@{'/books?page=' + ${currentPage + 1} + '&size=' + ${size}}">Next &raquo;</a>
-                <span th:unless="${currentPage < totalPages}">Next &raquo;</span>
+                <a th:if="${currentPage < totalPages-1}" th:href="@{'/books?page=' + ${currentPage + 1} + '&size=' + ${size}}">Next &raquo;</a>
+                <span th:unless="${currentPage < totalPages-1}">Next &raquo;</span>
             </li>
         </ul>
     </div>
