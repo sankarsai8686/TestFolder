@@ -1,5 +1,36 @@
-<style>
-    .custom-pagination-container {
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DataTables Example</title>
+
+    <!-- Bootstrap CSS link -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+
+    <!-- Include jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.0.js"></script>
+
+    <!-- Include DataTables CSS -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
+
+    <!-- Include DataTables library -->
+    <script type="text/javascript" src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+
+    <!-- DataTables Initialization -->
+    <script>
+        $(document).ready(function() {
+            $('#example').DataTable({
+                searching: false,
+                lengthChange: false,
+                paging: false,
+                info: false,
+            });
+        });
+    </script>
+
+    <style>
+     .custom-pagination-container {
         overflow-x: auto;
         white-space: nowrap;
         margin-top: 10px; /* Adjust the top margin as needed */
@@ -17,44 +48,35 @@
     .custom-pagination li {
         display: inline-block;
         margin-left: 5px; /* Adjust the spacing between pagination items */
-    }
-</style>
+        }
 
 
 
+.custom-pagination .active {
+    background-color: #007bff;
+    color: #fff;
+    border: 1px solid #007bff;
+}
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DataTables Example</title>
-    
-    <!-- Bootstrap CSS link -->
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
-    
-    <!-- Include jQuery -->
-    <script src="https://code.jquery.com/jquery-3.7.0.js"></script>
+.custom-pagination a,
+.custom-pagination span {
+    display: inline-block;
+    padding: 8px 12px;
+    /* background-color: #f8f9fa; */
+    color: #343a40;
+    text-decoration: none;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+}
 
-    <!-- Include DataTables CSS -->
-    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
-
-    <!-- Include DataTables library -->
-    <script type="text/javascript" src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
-
-    <!-- DataTables Initialization -->
-    <script>
-        $(document).ready(function() {
-            $('#example').DataTable({
-                searching: false, // Disable search feature
-                lengthChange: false, // Disable records per page dropdown
-                paging: false, // Enable DataTables pagination
-                info: false, // Disable information showing current page and total pages
-            });
-        });
-    </script>
-
-    
+.custom-pagination-container .disabled {
+    background-color: #f8f9fa;
+    color: #6c757d;
+    border: 1px solid #ddd;
+    cursor: not-allowed;
+}
+    </style>
 </head>
 <body>
 
@@ -66,36 +88,38 @@
             </tr>
         </thead>
         <tbody>
-            <tr th:each="book : ${books}">
-                <td th:text="${book.id}"></td>
-                <td th:text="${book.name}"></td>
+            <tr th:each="user : ${users}">
+                <td th:text="${user.user_id}"></td>
+                <td th:text="${user.username}"></td>
             </tr>
         </tbody>
     </table>
 
+    <!-- Display current page number -->
+    <p>Current Page: <span th:text="${currentPage}"></span></p>
+    <p>Total Page: <span th:text="${totalPages}"></span></p>
+
+    <!-- Pagination container -->
     <div class="custom-pagination-container" th:if="${totalPages > 1}">
-    <ul class="custom-pagination">
-        <li th:class="${currentPage == 1} ? 'disabled' : ''">
-            <a th:href="@{${currentPage > 1} ? '/books?page=' + ${currentPage - 1} : '#'}">&laquo; Previous</a>
-        </li>
+        <ul class="custom-pagination" >
+            <!-- "Previous" link -->
+            <li th:class="${currentPage == 1} ? 'disabled' : ''">
+                <a th:if="${currentPage > 1}" th:href="@{'/books?page=' + ${currentPage - 1} + '&size=' + ${size}}">&laquo; Previous</a>
+                <span th:unless="${currentPage > 1}">&laquo; Previous</span>
+            </li>
 
-		 <li th:each="pageNumber : ${#numbers.sequence(1, totalPages)}" th:class="${pageNumber == currentPage} ? 'active' : ''">
-	            <a th:href="@{'/books?page=' + ${pageNumber}}" th:text="${pageNumber}" class="nav-link"></a>
-	        </li>
-		
-      
+            <!-- Page numbers -->
+            <li th:each="pageNumber : ${#numbers.sequence(1, totalPages)}" th:class="${pageNumber == currentPage} ? 'active' : ''">
+                <a th:href="@{'/books?page=' + ${pageNumber} + '&size=' + ${size}}" th:text="${pageNumber}" class="nav-link"></a>
+            </li>
 
-        <li th:class="${currentPage == totalPages} ? 'disabled' : ''">
-            <a th:href="@{${currentPage < totalPages} ? '/books?page=' + ${currentPage + 1} : '#'}">Next &raquo;</a>
-        </li>
-    </ul>
-</div>
-
-
-
-
-
-
+            <!-- "Next" link -->
+            <li th:class="${currentPage == totalPages-1} ? 'disabled' : ''">
+                <a th:if="${currentPage < totalPages}" th:href="@{'/books?page=' + ${currentPage + 1} + '&size=' + ${size}}">Next &raquo;</a>
+                <span th:unless="${currentPage < totalPages}">Next &raquo;</span>
+            </li>
+        </ul>
+    </div>
 
 </body>
 </html>
