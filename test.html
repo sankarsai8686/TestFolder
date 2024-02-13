@@ -25,17 +25,54 @@
                 lengthChange: false,
                 paging: false,
                 info: false,
+                processing: true,
+    			
             });
         });
     </script>
 
     <style>
-     .custom-pagination-container {
+    pagination-container {
+        display: flex;
+        overflow-x: auto;
+    }
+
+    .pagination-info {
+        white-space: nowrap;
+        /* Add any additional styling for the page information */
+    }
+
+    .custom-pagination-container {
+        white-space: nowrap;
+        /* Add any additional styling for the pagination container */
+        margin-left:700px;
+    }
+
+    .custom-pagination-container .custom-pagination {
+        list-style-type: none;
+        padding: 0;
+        margin: 0;
+        white-space: nowrap; /* Ensure all items stay on the same line */
+    }
+
+    .custom-pagination-container .custom-pagination li {
+        display: inline-block;
+        margin-left: 5px; /* Adjust the spacing between pagination items */
+    }
+    
+     .pagination-wrapper {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .custom-pagination-container {
         overflow-x: auto;
         white-space: nowrap;
-        margin-top: 10px; /* Adjust the top margin as needed */
-        margin-left: 950px; /* Adjust the left margin as needed */
+        /* Add any additional styling for the container */
     }
+    
+    
 
     .custom-pagination {
         display: inline-block;
@@ -43,6 +80,7 @@
         padding: 0;
         margin: 0;
         white-space: nowrap; /* Ensure all items stay on the same line */
+         margin-left:700px;
     }
 
     .custom-pagination li {
@@ -98,11 +136,19 @@
     </table>
 
     <!-- Display current page number -->
-    <p>Current Page: <span th:text="${currentPage}"></span></p>
-    <p>Total Page: <span th:text="${totalPages}"></span></p>
+    <!-- <p>Current Page: <span th:text="${currentPage}"></span></p>
+    <p>Total Page: <span th:text="${totalPages}"></span></p> -->
+    
+    <div class="pagination-wrapper">
+    <!-- Pagination information -->
+<div class="pagination-info">
+    Showing <span th:text="${(currentPage - 1) * size + 1}"></span>
+    to <span th:text="${(currentPage - 1) * size + 10}"></span>
+   of <span th:text="${totalEntries}"></span> entries 
+</div>
 
     <!-- Pagination container -->
-    <div class="custom-pagination-container" th:if="${totalPages > 1}">
+    <div class="custom-pagination-container" >
         <ul class="custom-pagination" >
             <!-- "Previous" link -->
             <li th:class="${currentPage == 1} ? 'disabled' : ''">
@@ -116,12 +162,12 @@
             </li>
 
             <!-- "Next" link -->
-            <li th:class="${currentPage == totalPages-1} ? 'disabled' : ''">
+            <li th:class="${currentPage == totalPages} ? 'disabled' : ''">
                 <a th:if="${currentPage < totalPages-1}" th:href="@{'/books?page=' + ${currentPage + 1} + '&size=' + ${size}}">Next &raquo;</a>
                 <span th:unless="${currentPage < totalPages-1}">Next &raquo;</span>
             </li>
         </ul>
     </div>
-
+</div>
 </body>
 </html>
