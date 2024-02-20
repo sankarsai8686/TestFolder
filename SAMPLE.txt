@@ -1,0 +1,283 @@
+  CASE value
+    WHEN '5 %' THEN 1
+    WHEN '10 %' THEN 2
+    WHEN '20 %' THEN 3
+    WHEN 'balance' THEN 4
+    ELSE 5 -- Assign any other values a value greater than 4
+
+	
+	
+	
+<div class="form-group">
+    <label for="entriesSelect">Show entries:</label>
+    <select id="entriesSelect" class="form-control">
+        <option value="3" th:Yes ="${size == 3}">3</option>
+        <option value="5" th:selected="${size == 5}">5</option>
+        <option value="10" th:selected="${size == 10}">10</option>
+        <option value="20" th:selected="${size == 20}">20</option>
+        <option value="50" th:selected="${size == 50}">50</option>
+        <option value="100" th:selected="${size == 100}">100</option>
+    </select>
+</div>	
+	
+
+
+document.addEventListener('DOMContentLoaded', function () {
+  
+  
+  
+          const entriesSelect = document.getElementById('entriesSelect');
+
+        // Add event listener to the select element
+        entriesSelect.addEventListener('change', function () {
+            // Get the selected value (number of entries per page)
+            const selectedEntries = parseInt(entriesSelect.value);
+            // You can perform further actions here, like updating the displayed data
+            // For example, you might want to make an AJAX request to fetch data based on the selectedEntries
+            console.log('Selected entries:', selectedEntries);
+            alert(selectedEntries)
+            
+            
+            //<a th:if="${currentPage != i}" th:href="@{'/page/' + ${i}}">[[${i}]]</a>
+            window.location.href = `/page/1?size=${selectedEntries}`;
+			//?size=${selectedEntries}&page=${currentPage}
+            
+        });
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+            /* Set maximum height and overflow properties */
+            max-height: 80px; /* Adjust as needed */
+            overflow: hidden;
+            word-wrap: break-word;
+        }
+
+-----
+th {
+       
+        white-space: nowrap; /* Prevent header text from wrapping */
+        overflow: hidden; /* Hide any overflow content */
+        text-overflow: ellipsis; /* Display an ellipsis (...) for overflow content */
+    }
+	
+	
+	
+	
+<script>
+        function updateTable(html, totalPages) {
+    // Replace the content of your table container with the new HTML
+    document.querySelector('.table tbody').innerHTML = html;
+    document.getElementById('totalPages').value = totalPages;
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    const entriesSelect = document.getElementById('entriesSelect');
+
+    // Add event listener to the select element
+    entriesSelect.addEventListener('change', function () {
+        // Get the selected value (number of entries per page)
+        const selectedEntries = parseInt(entriesSelect.value);
+        // You can perform further actions here, like updating the displayed data
+        // For example, you might want to make an AJAX request to fetch data based on the selectedEntries
+        console.log('Selected entries:', selectedEntries);
+        alert(selectedEntries);
+
+        // Make an AJAX request to fetch updated HTML content
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', `/page/1?size=${selectedEntries}`, true);
+
+        xhr.onload = function () {
+            if (xhr.status >= 200 && xhr.status < 400) {
+                // Update the content of your HTML table with the new HTML
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(xhr.responseText, 'text/html');
+                // Extract the table content from the parsed HTML
+                const tableContent = doc.querySelector('.table').innerHTML;
+
+                // Retrieve the total pages value from the hidden input field
+                const totalPages = parseInt(doc.querySelector('#totalPages').value);
+                console.log('Total Pages:', totalPages);
+
+                // Update the pagination section
+                const paginationContainer = document.querySelector('.pagination-container');
+
+                if (totalPages > 1) {
+                    // Clear existing pagination links
+                    paginationContainer.innerHTML = '';
+
+                    // Create and append pagination links
+                    for (let i = 1; i <= totalPages; i++) {
+                        const link = document.createElement('a');
+                        link.textContent = i;
+                        link.href = '/page/' + i;
+                        paginationContainer.appendChild(link);
+
+                        if (i !== totalPages) {
+                            paginationContainer.appendChild(document.createTextNode(' | '));
+                        }
+                    }
+                }
+
+                updateTable(tableContent, totalPages);
+            } else {
+                // Handle error
+                console.error('Error fetching data:', xhr.statusText);
+            }
+        };
+
+        xhr.onerror = function () {
+            // Handle connection error
+            console.error('Connection error');
+        };
+
+        xhr.send();
+    });
+
+
+	//FOR CHECK BOXES
+    // Get the checkbox in the table header
+    const tableLevelCheckBox = document.getElementById('tableLevelCheckBox');
+    // Get the checkbox for selecting all records
+    const selectAllCheckBox = document.getElementById('selectAllCheckBox');
+    // Get all checkboxes in the table body
+    const employeeCheckBoxes = document.querySelectorAll('.employeeCheckBox');
+
+    // Add event listener to the checkbox in the table header
+    tableLevelCheckBox.addEventListener('change', function () {
+    alert("tableLevelCheckBox")
+        // Check or uncheck all checkboxes in the table body based on the state of the checkbox in the table header
+        employeeCheckBoxes.forEach(function (checkbox) {
+            checkbox.checked = tableLevelCheckBox.checked;
+        });
+        // Update selected count
+        updateSelectedCountforRecords();
+        // Update selectAllCheckBox
+    });
+
+    // Add event listener to the checkbox for selecting all records
+    selectAllCheckBox.addEventListener('change', function () {
+       alert("All Check Box clicked");
+        allCheckBox = true;
+        // Check or uncheck all checkboxes in the table body based on the state of the checkbox for selecting all records
+        employeeCheckBoxes.forEach(function (checkbox) {
+            checkbox.checked = selectAllCheckBox.checked;
+        });
+        // Update selected count
+        updateSelectedCountforRecords();
+        // Update tableLevelCheckBox
+        tableLevelCheckBox.checked = selectAllCheckBox.checked;
+    });
+
+    // Add event listener to individual checkboxes
+    employeeCheckBoxes.forEach(function (checkbox) {
+		alert("Indiviually employeeCheckBoxes")
+        checkbox.addEventListener('change', function () {
+            // Update selected count
+            updateSelectedCountforRecords();
+            // Check if all checkboxes are selected
+            let allSelected = true;
+            employeeCheckBoxes.forEach(function (checkbox) {
+                if (!checkbox.checked) {
+                    allSelected = false;
+                }
+            });
+            // Update selectAllCheckBox
+            //selectAllCheckBox.checked = allSelected;
+            // Update tableLevelCheckBox
+            tableLevelCheckBox.checked = allSelected;
+        });
+    });
+});
+
+/*function updateSelectedCountforTableLevel() {
+
+alert("updateSelectedCountforTableLevel")
+
+    const selectAllChecked = document.getElementById('selectAllCheckBox').checked;
+    const totalRecordsOrg = parseInt([[${totalElements}]]);
+    let totalRecords = totalRecordsOrg;
+    const checkboxes = document.querySelectorAll('.employeeCheckBox');
+    let selectedCount = 0;
+
+    checkboxes.forEach(function (checkbox) {
+        if (checkbox.checked) {
+            selectedCount++;
+            if(totalRecords < totalRecordsOrg){
+                totalRecords += 1;
+            } 
+        } else {
+            totalRecords -= 1;
+        }
+    });
+
+    if (selectAllChecked) {
+        document.getElementById('selectedCount').textContent = 'Checkboxes selected: ' + totalRecords;
+    } else {
+        document.getElementById('selectedCount').textContent = 'Checkboxes selected: ' + selectedCount;
+    }
+}
+*/
+
+
+
+
+function updateSelectedCountforRecords() {
+alert("updateSelectedCountforRecords")
+
+    // Get all checkboxes with the class 'employeeCheckBox'
+    const checkboxes = document.querySelectorAll('.employeeCheckBox');
+
+    // Get the total number of records from the server-side variable
+    const totalRecords = parseInt([[${totalElements}]]);
+    
+    let temptotalRecords = totalRecords;
+
+    // Initialize a counter for the selected checkboxes
+    let selectedCount = 0;
+
+    // Iterate over each checkbox and count the selected ones
+    checkboxes.forEach(function (checkbox) {
+        if (checkbox.checked) {
+            selectedCount++;
+        } else {
+        temptotalRecords--;
+        }
+    });
+    // If 'Select All Records' checkbox is checked, update the selected count to total records
+    if (document.getElementById('selectAllCheckBox').checked) {
+    document.getElementById('selectedCount').textContent = 'Checkboxes selected: ' + temptotalRecords;
+    } else {
+    //It is for table level Check Box
+    document.getElementById('selectedCount').textContent = 'Checkboxes selected: ' + selectedCount;
+    }
+}
+
+
+    </script>
