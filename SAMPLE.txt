@@ -280,4 +280,55 @@ alert("updateSelectedCountforRecords")
 }
 
 
+
+function updateSelectedCountforRecords() {
+alert("updateSelectedCountforRecords")
+
+    // Get all checkboxes with the class 'employeeCheckBox'
+    const checkboxes = document.querySelectorAll('.employeeCheckBox');
+
+    // Get the total number of records from the server-side variable
+    const totalRecords = parseInt([[${totalElements}]]);
+    
+    let temptotalRecords = totalRecords;
+
+    // Initialize a counter for the selected checkboxes
+    let selectedCount = 0;
+
+    // Iterate over each checkbox and count the selected ones
+    checkboxes.forEach(function (checkbox) {
+    
+    // Get the data-employee-id attribute value
+    var employeeId = checkbox.getAttribute('data-employee-id');
+    //alert("employeeId : : : : : "+employeeId)
+        if (checkbox.checked) {
+            selectedCount++;
+            
+            // Push the employeeId into the selectedEmployeeIds array if it's not already present
+        if (!selectedEmployeeIds.includes(employeeId)) {
+            selectedEmployeeIds.push(employeeId);
+        }
+            
+            
+        } else {
+        temptotalRecords--;
+        
+        var index = selectedEmployeeIds.indexOf(employeeId);
+        if (index !== -1) {
+            selectedEmployeeIds.splice(index, 1);
+        }
+        
+        }
+    });
+    // If 'Select All Records' checkbox is checked, update the selected count to total records
+    if (document.getElementById('selectAllCheckBox').checked) {
+    document.getElementById('selectedCount').textContent = 'Checkboxes selected: ' + temptotalRecords;
+    } else {
+    //It is for table level Check Box
+    document.getElementById('selectedCount').textContent = 'Checkboxes selected: ' + selectedCount;
+    }
+    
+    console.log("selectedEmployeeIds : : : -> "+selectedEmployeeIds)
+}
+
     </script>
