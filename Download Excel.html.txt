@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Management System</title>
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="/FileSaver.js"></script>
+    <style>
+        h1 {
+            text-align: center;
+        }
+        
+        .spinner {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 9999;
+    display: none;
+}
+
+.spinner-inner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid rgba(0, 0, 0, 0.1);
+    border-top-color: #3498db;
+    border-radius: 50%;
+    animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+        
+        
+    </style>
+</head>
+<body>
+
+<div id="spinner" class="spinner">
+    <div class="spinner-inner"></div>
+</div>
+
+
+    <div align="center" class="container">
+        <h1>Employee List</h1>
+        
+        <!-- Dropdown for Show entries -->
+        <div class="form-group">
+            <div class="col-md-1">
+                <select id="entriesSelect" class="form-control">
+                    <option value="2" th:selected="${size == 2}">2</option>
+                    <option value="3" th:selected="${size == 3}">3</option>
+                    <option value="5" th:selected="${size == 5}">5</option>
+                    <option value="10" th:selected="${size == 10}">10</option>
+                    <option value="20" th:selected="${size == 20}">20</option>
+                    <option value="50" th:selected="${size == 50}">50</option>
+                    <option value="100" th:selected="${size == 100}">100</option>
+                </select>
+            </div>
+        </div>
+        
+        <!-- Add Employee Button -->
+        <div style="display: inline-block;">
+    <a th:href="@{/addempform}" class="btn btn-primary">Add Employee</a>
+	</div>
+	<div style="display: inline-block;">
+	    <a href="#" class="btn btn-primary" onclick="getSelectedIds()">Get selected ID's</a>
+	</div>
+	<div style="display: inline-block;">
+	    <a class="btn btn-primary" id = "genExcel"  >Generate Excel</a>
+	</div>
+
+        
+        <!-- Select All Records Checkbox -->
+        <div>
+            <span id="selectAllRecords">Select All Records: <input type="checkbox" id="selectAllCheckBox"></span>
+        
+            <!-- Selected Count -->
+            <span id="selectedCount">Checkboxes selected: 0</span>
+        </div>
+        
+        <!-- Pagination Table -->
+        <table class="table">
+            <thead class="thead-dark">
+                <tr>
+                    <th><input type="checkbox" id="tableLevelCheckBox"></th>
+                    <th>Emp Id</th>
+                    <th>Emp First Name</th>
+                    <th>Emp Last Name</th>
+                    <th>Emp Email</th>
+                    <th colspan="2">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="employeeTableBody">
+                <!-- Table rows will be appended here -->
+            </tbody>
+        </table>
+        
+        <div id="paginationSection">
+            <!-- Pagination controls will be appended here -->
+        </div>
+        
+        <!-- Hidden Input for Total Pages -->
+        <input type="text" id="totalPages" th:value="${totalPages}" /> 
+        <input type="text" id="allIds" th:value="${allIds}" /> 
+    </div>
+
+    <script>
+    	
+    	
+    	function onload(){
+    		console.log('onload fn called')
+    		const selectedIdsFromLocalStoarge = JSON.parse(localStorage.getItem('selectedIdsFromLocalStoarge')) || [];
+			console.log(selectedIdsFromLocalStoarge);
+			
+
+    		// Get all checkboxes in the table body
+    		const employeeCheckBoxes = document.querySelectorAll('.employeeCheckBox');
+    		console.log(employeeCheckBoxes);
+    		// Iterate over each checkbox
+    		let allSelected = true;
+		    employeeCheckBoxes.forEach(function(checkbox) {
+		        // Get the data-employee-id attribute value
+		        var employeeId = checkbox.getAttribute('data-employee-id');
+				console.log("employeeId : "+employeeId+" : "+checkbox.checked);
+				
+		        // Check if the employeeId is present in the stored array
+		        if (selectedIdsFromLocalStoarge.includes(parseInt(employeeId))) {
+		            // Enable the checkbox if the ID is found
+		            checkbox.checked = true;
+		        }
+		        if (!selectedIdsFromLocalStoarge.includes(parseInt(employeeId))) {
+		            // Enable the checkbox if the ID is found
+		            allSelected = false;
+		        }
+		    });
+		      tableLevelCheckBox.checked = allSelected;
+		    console.log('lenght : '+selectedIdsFromLocalStoarge.length)
+		    document.getElementById('selectedCount').textContent = 'Checkboxes selected: ' + selectedIdsFromLocalStoarge.length;
+    		
+    	}
+    
+    
+    
+        // Function to fetch data via AJAX
+        function fetchData(pageNo, size) {
+        
+        console.log( getURLParameters())
+        
+            $.ajax({
+                url: '/getdata?pageNo=' + pageNo + '&size=' + size,
+                type: 'GET',
+                success: function(data) {
+                    // Clear table body
+                    $('#employeeTableBody').empty();
+
+                    // Append new table rows
+                    $.each(data.listEmployees, function(index, employee) {
+                        var row = '<tr>' +
+                            '<td><input type="checkbox" class="employeeCheckBox" data-employee-id="' + employee.id + '" onclick="checkBox(this)" onchange="updateSelectedCountforTableLevel()"></td>' +
+                            '<td>' + employee.id + '</td>' +
+                            '<td>' + employee.firstName + '</td>' +
+                            '<td>' + employee.lastName + '</td>' +
+                            '<td>' + employee.email + '</td>' +
+                            '<td><a href="/showFormForUpdate/' + employee.id + '" class="btn btn-primary">Edit</a></td>' +
+                            '<td><a href="/deleteEmp/' + employee.id + '" class="btn btn-danger">Delete</a></td>' +
+                            '</tr>';
+                        $('#employeeTableBody').append(row);
+                    });
+
+                    // Update pagination section (assuming pagination is also affected by the size change)
+                    // You may need to update this part according to your pagination logic
+                    var paginationHtml = '<div class="row col-sm-10">' +
+                        '<div class="col-sm-2">Total Records: ' + data.totalElements + '</div>' +
+                        '<div class="col-sm-1">';
+                    if (data.currentPage > 1) {
+                        paginationHtml += '<a href="#" onclick="fetchData(' + (data.currentPage - 1) + ',' + size + ')">Previous</a>';
+                    } else {
+                        paginationHtml += 'Previous';
+                    }
+                    paginationHtml += '</div>' +
+                        '<div class="col-sm-3">';
+                    for (var i = 1; i <= data.totalPages; i++) {
+                        if (data.currentPage != i) {
+                            paginationHtml += '<a href="#" onclick="fetchData(' + i + ',' + size + ')">' + i + '</a>';
+                        } else {
+                            paginationHtml += i;
+                        }
+                        paginationHtml += '&nbsp; &nbsp;';
+                    }
+                    paginationHtml += '</div>' +
+                        '<div class="col-sm-1">';
+                    if (data.currentPage != data.totalPages) {
+                        paginationHtml += '<a href="#" onclick="fetchData(' + (data.currentPage + 1) + ',' + size + ')">Next</a>';
+                    } else {
+                        paginationHtml += 'Next';
+                    }
+                    paginationHtml += '</div>' +
+                        '</div>';
+                    $('#paginationSection').html(paginationHtml);
+                    
+                    $('#totalPages').val(data.totalElements);
+                   // $('#allIds').val(allIds);
+                  
+                   // Set up event listeners after AJAX call is successful
+            	    setUpEventListeners();
+            	    onload();
+                }
+            });
+        }
+
+        // Event listener for dropdown change
+        $('#entriesSelect').change(function() {
+            var selectedSize = $(this).val();
+            fetchData(1, selectedSize); // Assuming page number is reset to 1 when size changes
+        });
+
+        // Initial data fetch (assuming default size is selected)
+        fetchData(1, $('#entriesSelect').val());
+        
+        function updateSelectedCountforTableLevel(){}
+        
+        function updateTable(html, totalPages) {
+            // Replace the content of your table container with the new HTML
+            document.querySelector('.table tbody').innerHTML = html;
+            document.getElementById('totalPages').value = totalPages;
+        }
+
+        // Function to set up event listeners for checkboxes
+function setUpEventListeners() {
+    // Get the checkbox in the table header
+    const tableLevelCheckBox = document.getElementById('tableLevelCheckBox');
+    // Get the checkbox for selecting all records
+    const selectAllCheckBox = document.getElementById('selectAllCheckBox');
+    // Get all checkboxes in the table body
+    const employeeCheckBoxes = document.querySelectorAll('.employeeCheckBox');
+
+    // Add event listener to the checkbox in the table header
+    tableLevelCheckBox.addEventListener('change', function () {
+        //alert("tableLevelCheckBox")
+        // Check or uncheck all checkboxes in the table body based on the state of the checkbox in the table header
+        employeeCheckBoxes.forEach(function (checkbox) {
+        console.log(checkbox.checked)
+            checkbox.checked = tableLevelCheckBox.checked;
+        });
+        // Update selected count
+        updateSelectedCountforRecords();
+        // Update selectAllCheckBox
+    });
+
+    // Add event listener to the checkbox for selecting all records
+    selectAllCheckBox.addEventListener('change', function () {
+        allCheckBox = true;
+        // Check or uncheck all checkboxes in the table body based on the state of the checkbox for selecting all records
+        
+        
+        if(selectAllCheckBox.checked){
+        	console.log('selectAllCheckBox selected')
+        	const allIdsValue = document.getElementById('allIds').value;
+        	//localStorage.setItem('allIds', allIdsValue);
+        	localStorage.setItem('selectedIdsFromLocalStoarge', allIdsValue);
+        	
+        }else{
+        	 console.log('selectAllCheckBox not selected')
+        	 localStorage.removeItem('selectedIdsFromLocalStoarge');
+        }
+        
+        
+        employeeCheckBoxes.forEach(function (checkbox) {
+            checkbox.checked = selectAllCheckBox.checked;
+        });
+        // Update selected count
+        updateSelectedCountforRecords();
+        // Update tableLevelCheckBox
+        tableLevelCheckBox.checked = selectAllCheckBox.checked;
+    });
+
+    // Add event listener to individual checkboxes
+    employeeCheckBoxes.forEach(function (checkbox) {
+        //alert("Indiviually employeeCheckBoxes")
+        checkbox.addEventListener('change', function () {
+            // Update selected count
+            updateSelectedCountforRecords();
+            // Check if all checkboxes are selected
+            let allSelected = true;
+            employeeCheckBoxes.forEach(function (checkbox) {
+                if (!checkbox.checked) {
+                    allSelected = false;
+                }
+            });
+            tableLevelCheckBox.checked = allSelected;
+        });
+    });
+}
+
+        function updateSelectedCountforRecords() {
+            console.log('updateSelectedCountforRecords--------')
+			// Retrieve the stored IDs from localStorage and parse it as an array
+			let selectedIdsFromLocalStoarge = JSON.parse(localStorage.getItem('selectedIdsFromLocalStoarge')) || [];
+
+            
+            
+            // Get all checkboxes with the class 'employeeCheckBox'
+            const checkboxes = document.querySelectorAll('.employeeCheckBox');
+
+            const totalRecords = document.getElementById('totalPages').value;
+            let temptotalRecords = totalRecords;
+            
+            
+            const allIds = [[${allIds}]];
+            console.log(allIds)
+
+            // Initialize a counter for the selected checkboxes
+            let selectedCount = 0;
+
+            // Iterate over each checkbox
+            checkboxes.forEach(function (checkbox) {
+                // Get the data-employee-id attribute value
+                var employeeId = checkbox.getAttribute('data-employee-id');
+                console.log('employeeId select --> ' + employeeId);
+                console.log(checkbox.checked);
+                
+                if (checkbox.checked) {
+                    console.log('check box selected')
+                    selectedCount++;
+
+                    // Push the employeeId into the selectedEmployeeIds array if it's not already present
+                    if (!selectedEmployeeIds.includes(employeeId)) {
+                        selectedEmployeeIds.push(parseInt(employeeId));
+                    }
+                    
+                    //console.log(selectedIdsFromLocalStoarge)
+                  if (!selectedIdsFromLocalStoarge.includes(parseInt(employeeId))) {
+					    selectedIdsFromLocalStoarge.push(parseInt(employeeId)); // Add the new employeeId to the array
+					    // Store the updated array back in localStorage
+					    //localStorage.setItem('selectedIdsFromLocalStoarge', JSON.stringify(selectedIdsFromLocalStoarge));
+					}
+
+                } else {
+                    temptotalRecords--;
+                    console.log("inside else");
+
+                    var index = selectedEmployeeIds.indexOf(employeeId);
+                    if (index !== -1) {
+                        selectedEmployeeIds.splice(index, 1);
+                    }
+                    
+                    var index1 = selectedIdsFromLocalStoarge.indexOf(parseInt(employeeId));
+                    if (index1 !== -1) {
+                        selectedIdsFromLocalStoarge.splice(index1, 1);
+                    }
+
+                }
+
+            });
+            
+            
+            // Store the updated array back in localStorage
+    		localStorage.setItem('selectedIdsFromLocalStoarge', JSON.stringify(selectedIdsFromLocalStoarge));
+
+            // If 'Select All Records' checkbox is checked, update the selected count to total records
+            if (document.getElementById('selectAllCheckBox').checked) {
+                console.log('selectAllCheckBox')
+                document.getElementById('selectedCount').textContent = 'Checkboxes selected: ' + selectedIdsFromLocalStoarge.length;
+            } else {
+                // It is for table level Check Box
+                console.log('table level')
+                document.getElementById('selectedCount').textContent = 'Checkboxes selected: ' + selectedIdsFromLocalStoarge.length;
+            }
+
+            console.log("selectedEmployeeIds : : : -> " + selectedEmployeeIds);
+        }
+        
+        // Array to store selected employee IDs
+        var selectedEmployeeIds = [];
+        
+        
+        function getURLParameters(){
+
+			var queryString = window.location.search;
+			
+			console.log(queryString)
+			
+			var urlParams = new URLSearchParams(queryString);
+			
+			var year = urlParams.get('year');
+			
+			var quarter = urlParams.get('quarter');
+			
+			var sample = urlParams.get('sample');
+			
+			var status = urlParams.get('status');
+			
+			var infraction = urlParams.get('infraction');
+			
+			var policyNo = urlParams.get('policyNo');
+			
+			var unitCode = urlParams.get('unitCode');
+			
+			var repCode = urlParams.get('repCode');
+			
+			var reviewer = urlParams.get('reviewer');
+			
+			var checker = urlParams.get('checker');
+			
+			return{
+			
+			year: year,
+			
+			quarter:quarter,
+			
+			sample:sample,
+			
+			status:status,
+			
+			infraction:infraction,
+			
+			policyNo:policyNo,
+			
+			unitCode:unitCode,
+			
+			repCode:repCode,
+			
+			reviewer:reviewer,
+			
+			checker:checker
+			
+			};
+			
+			}
+        
+     $('#genExcel').click(function() {
+    // Call the specific function when the element is clicked
+		    generateExcel();
+		});
+		
+		function generateExcel() {
+		    showSpinner();
+		    var req = new XMLHttpRequest();
+		    req.open("GET", "/excel", true);
+		    req.responseType = "blob";
+		
+		    req.onload = function (event) {
+		        try {
+		            if (req.status === 200) {
+		                var blob = req.response;
+		                
+		                const disposition = req.getResponseHeader('Content-Disposition');
+		                let fileName = "";
+		                if (disposition && disposition.includes("attachment")) {
+		                    const filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+		                    const matches = filenameRegex.exec(disposition);
+		                    if (matches != null && matches[1]) {
+		                        fileName = matches[1].replace(/['"]/g, '');
+		                    }
+		                }
+		
+		                if (!fileName.trim()) {
+		                    throw new Error("Filename not found in Content-Disposition header.");
+		                }
+		                
+		                console.log(fileName);
+		                
+		                var link=document.createElement('a');
+		                link.href=window.URL.createObjectURL(blob);
+		                link.download=fileName;
+		                link.click();
+		            } else {
+		                throw new Error("Request failed with status: " + req.status);
+		            }
+		        } catch (error) {
+		            console.error("Error generating Excel:", error);
+		        } finally {
+		            hideSpinner();
+		        }
+		    };
+		
+		    req.onerror = function () {
+		        console.error("Error fetching Excel data.");
+		        hideSpinner();
+		    };
+		
+		    req.send();
+		}
+        
+        
+        function showSpinner() {
+		    document.getElementById('spinner').style.display = 'block';
+		}
+		
+		function hideSpinner() {
+		    document.getElementById('spinner').style.display = 'none';
+		}
+        
+        
+    </script>
+</body>
+</html>
