@@ -38,3 +38,14 @@ spring.security.saml2.relyingparty.registration.azure-ad.assertingparty.single-s
 spring.security.saml2.relyingparty.registration.azure-ad.entity-id=https://localhost/saml2/metadata
 spring.security.saml2.relyingparty.registration.azure-ad.assertion-consumer-service.location=https://localhost:8080/saml/SSO
 
+
+@Bean
+public Saml2AuthenticationConverter authenticationConverter() {
+    return (saml2Response, registration) -> {
+        Saml2Authentication authentication = Saml2AuthenticationProvider
+                .builder()
+                .principalName("displayName") // Replace "displayName" with the attribute key for display name
+                .build();
+        return authentication;
+    };
+
