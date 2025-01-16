@@ -131,6 +131,52 @@ public Saml2AuthenticationConverter authenticationConverter() {
 
 
 
+
+
+@Controller
+public class LoginController {
+
+	@PostMapping("/process-local-login")
+    public String localLogin(@RequestParam String username, @RequestParam String password, HttpServletRequest request) {
+        
+    	System.out.println("process-local-login");
+    	
+    	try {
+            //request.login(username, password); // Delegate to Spring Security for authentication
+    		System.out.println("username : "+username);
+    		System.out.println("password : "+password);
+            return "redirect:/home";          // Redirect to the home page on success
+        } catch (Exception e) {
+            return "redirect:/login?error";  // Redirect to login with error on failure
+        }
+    }
+
+    @GetMapping("/login")
+    public String loginPage() {
+    	System.out.println("==================login=====================");
+        return "login";                      // Return custom login page
+    }
+
+    @GetMapping("/home")
+    public String homePage() {
+        return "home";                       // Redirect to home page after successful login
+    }
+    
+	/*
+	 * @GetMapping("/logout") public String logout() { return "login"; // Redirect
+	 * to home page after successful login }
+	 */
+    
+    @GetMapping("/logout")
+    public String logout(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        
+    	System.out.println("logout");// Invalidate the session and clear authentication data
+        SecurityContextLogoutHandler logoutHandler = new SecurityContextLogoutHandler();
+        logoutHandler.logout(request, response, null);
+        return "redirect:/login";  // Redirect to login page after logout
+    }
+}
+
 logging.level.org.springframework.security=DEBUG
 logging.level.org.springframework.security.saml2=DEBUG
 logging.level.org.opensaml=DEBUG
