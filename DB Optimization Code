@@ -108,3 +108,96 @@ WHEN NOT MATCHED THEN
     INSERT (fc_code, year, quarter, column1) 
     VALUES (source.fc_code, source.year, source.quarter, source.column1);
 
+
+--@Transactional
+public void upsertBscGrade(List<Policy> policies) {
+    String sql = "MERGE INTO bsc_grade AS target " +
+                 "USING (VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)) AS source (AD, CREATED_USER, FC_CODE, FC_NAME, GRADE, MODIFIED_USER, QUARTER, UNIT_CODE, YEAR) " +
+                 "ON target.FC_CODE = source.FC_CODE AND target.YEAR = source.YEAR AND target.QUARTER = source.QUARTER " +
+                 "WHEN MATCHED THEN " +
+                 "UPDATE SET target.GRADE = source.GRADE, target.CREATED_USER = source.CREATED_USER, " +
+                 "target.FC_NAME = source.FC_NAME, target.MODIFIED_USER = source.MODIFIED_USER " +
+                 "WHEN NOT MATCHED THEN " +
+                 "INSERT (AD, CREATED_USER, FC_CODE, FC_NAME, GRADE, MODIFIED_USER, QUARTER, UNIT_CODE, YEAR) " +
+                 "VALUES (source.AD, source.CREATED_USER, source.FC_CODE, source.FC_NAME, source.GRADE, " +
+                 "source.MODIFIED_USER, source.QUARTER, source.UNIT_CODE, source.YEAR);";
+
+    jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
+        @Override
+        public void setValues(PreparedStatement ps, int i) throws SQLException {
+            Policy pol = policies.get(i);
+            ps.setString(1, pol.getAd());
+            ps.setString(2, pol.getCreatedUser());
+            ps.setString(3, pol.getFcCode());
+            ps.setString(4, pol.getFcName());
+            ps.setString(5, pol.getGrade());
+            ps.setString(6, pol.getModifiedUser());
+            ps.setInt(7, pol.getQuarter());
+            ps.setString(8, pol.getUnitCode());
+            ps.setInt(9, pol.getYear());
+        }
+
+        @Override
+        public int getBatchSize() {
+            return policies.size();
+        }
+    });
+}
+
+
+
+public void upsertBscGrade(List<Policy> policies) {
+    // Update existing records
+    String updateSql = "UPDATE bsc_grade SET GRADE = ?, CREATED_USER = ?, FC_NAME = ?, MODIFIED_USER = ? " +
+                       "WHERE FC_CODE = ? AND YEAR = ? AND QUARTER = ?";
+
+    jdbcTemplate.batchUpdate(updateSql, new BatchPreparedStatementSetter() {
+        @Override
+        public void setValues(PreparedStatement ps, int i) throws SQLException {
+            Policy pol = policies.get(i);
+            ps.setString(1, pol.getGrade());
+            ps.setString(2, pol.getCreatedUser());
+            ps.setString(3, pol.getFcName());
+            ps.setString(4, pol.getModifiedUser());
+            ps.setString(5, pol.getFcCode());
+            ps.setInt(6, pol.getYear());
+            ps.setInt(7, pol.getQuarter());
+        }
+
+        @Override
+        public int getBatchSize() {
+            return policies.size();
+        }
+    });
+
+    // Insert new records that did not exist
+    String insertSql = "INSERT INTO bsc_grade (AD, CREATED_USER, FC_CODE, FC_NAME, GRADE, MODIFIED_USER, QUARTER, UNIT_CODE, YEAR) " +
+                       "SELECT ?, ?, ?, ?, ?, ?, ?, ?, ? " +
+                       "WHERE NOT EXISTS (SELECT 1 FROM bsc_grade WHERE FC_CODE = ? AND YEAR = ? AND QUARTER = ?)";
+
+    jdbcTemplate.batchUpdate(insertSql, new BatchPreparedStatementSetter() {
+        @Override
+        public void setValues(PreparedStatement ps, int i) throws SQLException {
+            Policy pol = policies.get(i);
+            ps.setString(1, pol.getAd());
+            ps.setString(2, pol.getCreatedUser());
+            ps.setString(3, pol.getFcCode());
+            ps.setString(4, pol.getFcName());
+            ps.setString(5, pol.getGrade());
+            ps.setString(6, pol.getModifiedUser());
+            ps.setInt(7, pol.getQuarter());
+            ps.setString(8, pol.getUnitCode());
+            ps.setInt(9, pol.getYear());
+            ps.setString(10, pol.getFcCode());
+            ps.setInt(11, pol.getYear());
+            ps.setInt(12, pol.getQuarter());
+        }
+
+        @Override
+        public int getBatchSize() {
+            return policies.size();
+        }
+    });
+}
+
+
