@@ -1,0 +1,110 @@
+// Batch Insert Policies
+    public void savePoliciesBatch(List<Policy> policies) {
+        String sql = "INSERT INTO policy (fc_code, year, quarter, column1, column2) VALUES (?, ?, ?, ?, ?)";
+
+        jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
+            @Override
+            public void setValues(PreparedStatement ps, int i) throws SQLException {
+                Policy pol = policies.get(i);
+                ps.setString(1, pol.getFcCode());
+                ps.setInt(2, pol.getYear());
+                ps.setInt(3, pol.getQuarter());
+                ps.setString(4, pol.getColumn1());
+                ps.setString(5, pol.getColumn2());
+            }
+
+            @Override
+            public int getBatchSize() {
+                return policies.size();
+            }
+        });
+    }
+
+
+
+
+public void upsertBscGrade(List<Policy> policies) {
+        String sql = "MERGE INTO bsc_grade " +
+                "USING (SELECT ? AS fc_code, ? AS year, ? AS quarter, ? AS column1) AS source_data " +
+                "ON bsc_grade.fc_code = source_data.fc_code " +
+                "AND bsc_grade.year = source_data.year " +
+                "AND bsc_grade.quarter = source_data.quarter " +
+                "WHEN MATCHED THEN UPDATE SET column1 = source_data.column1 " +
+                "WHEN NOT MATCHED THEN INSERT (fc_code, year, quarter, column1) " +
+                "VALUES (source_data.fc_code, source_data.year, source_data.quarter, source_data.column1);";
+
+        jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
+            @Override
+            public void setValues(PreparedStatement ps, int i) throws SQLException {
+                Policy pol = policies.get(i);
+                ps.setString(1, pol.getFcCode());
+                ps.setInt(2, pol.getYear());
+                ps.setInt(3, pol.getQuarter());
+                ps.setString(4, pol.getColumn1());
+            }
+
+            @Override
+            public int getBatchSize() {
+                return policies.size();
+            }
+        });
+    }
+
+
+//DB2
+
+ public void upsertBscGrade(List<Policy> policies) {
+        String sql = "MERGE INTO bsc_grade AS target " +
+                "USING (VALUES (?, ?, ?, ?)) AS source (fc_code, year, quarter, column1) " +
+                "ON target.fc_code = source.fc_code " +
+                "AND target.year = source.year " +
+                "AND target.quarter = source.quarter " +
+                "WHEN MATCHED THEN UPDATE SET target.column1 = source.column1 " +
+                "WHEN NOT MATCHED THEN INSERT (fc_code, year, quarter, column1) " +
+                "VALUES (source.fc_code, source.year, source.quarter, source.column1);";
+
+        jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
+            @Override
+            public void setValues(PreparedStatement ps, int i) throws SQLException {
+                Policy pol = policies.get(i);
+                ps.setString(1, pol.getFcCode());
+                ps.setInt(2, pol.getYear());
+                ps.setInt(3, pol.getQuarter());
+                ps.setString(4, pol.getColumn1());
+            }
+
+            @Override
+            public int getBatchSize() {
+                return policies.size();
+            }
+        });
+    }
+
+
+//testing IBM DB2
+
+MERGE INTO bsc_grade AS target
+USING (VALUES ('FC123', 2025, 1, 'UpdatedValue')) AS source (fc_code, year, quarter, column1)
+ON target.fc_code = source.fc_code 
+AND target.year = source.year 
+AND target.quarter = source.quarter
+WHEN MATCHED THEN 
+    UPDATE SET target.column1 = source.column1
+WHEN NOT MATCHED THEN 
+    INSERT (fc_code, year, quarter, column1) 
+    VALUES (source.fc_code, source.year, source.quarter, source.column1);
+
+
+//Azure SQL SERVER 
+
+MERGE INTO bsc_grade AS target
+USING (SELECT 'FC123' AS fc_code, 2025 AS year, 1 AS quarter, 'UpdatedValue' AS column1) AS source
+ON target.fc_code = source.fc_code 
+AND target.year = source.year 
+AND target.quarter = source.quarter
+WHEN MATCHED THEN 
+    UPDATE SET target.column1 = source.column1
+WHEN NOT MATCHED THEN 
+    INSERT (fc_code, year, quarter, column1) 
+    VALUES (source.fc_code, source.year, source.quarter, source.column1);
+
