@@ -1,0 +1,90 @@
+package com.bss.javaPrograms;
+
+import java.util.*;
+import java.util.stream.Collectors;
+
+public class UpdateMainDataJava8 {
+
+    public static void main(String[] args) {
+
+        // Q4 = 32, Q3 = 31, Q2 = 30, Q1 = 29
+        List<Map<String, Object>> deleted = Arrays.asList(
+            createDeletedEntry(2018, 3, "FC123"), // If user selected Q3 then Quarter is 3
+            createDeletedEntry(2017, 1, "FC456")  // Another FC Code deleted in 2017 Q1
+        );
+
+        // Example mainData (FC Code wise records)
+        List<Map<String, Object>> mainData = Arrays.asList(
+        	    createMainDataEntry("FC123", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"),
+        	    createMainDataEntry("FC456", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X"),
+        	    createMainDataEntry("FC789", "Y", "Z", "AA", "BB", "CC", "DD", "EE", "FF", "GG", "HH", "II", "JJ")
+        	);
+
+        // User-selected year & quarter (generating Grade_1 to Grade_12 dynamically)
+        int startYear = 2018, startQuarter = 4; // If Q4 then 4
+
+        // Generate Mapping: { "FC123" -> "Grade_2", "FC456" -> "Grade_4" }
+        Map<String, String> fcCodeToGrade = deleted.stream()
+            .collect(Collectors.toMap(
+                entry -> (String) entry.get("fc_code"), // Key: FC Code
+                entry -> "Grade_" + getGradeNumber(startYear, startQuarter, 
+                                (int) entry.get("year"), (int) entry.get("quarter")) // Value: Grade_X
+            ));
+
+        System.out.println("fcCodeToGrade: " + fcCodeToGrade);
+
+        // Update mainData using Java 8 Streams
+        mainData.forEach(record -> {
+            String fcCode = (String) record.get("fc_code");
+            if (fcCodeToGrade.containsKey(fcCode)) {
+                String gradeToUpdate = fcCodeToGrade.get(fcCode);
+                if (record.containsKey(gradeToUpdate)) { // Ensure the grade exists before updating
+                    record.put(gradeToUpdate, "NG");
+                }
+            }
+        });
+
+        // Print updated mainData
+        mainData.forEach(System.out::println);
+    }
+
+    // Calculates Grade number from the selected year & quarter
+    private static int getGradeNumber(int startYear, int startQuarter, int delYear, int delQuarter) {
+       // System.out.println("startYear: " + startYear + ", startQuarter: " + startQuarter);
+        //System.out.println("delYear: " + delYear + ", delQuarter: " + delQuarter);
+
+        int grade = 1;
+        while (!(startYear == delYear && startQuarter == delQuarter)) {
+            startQuarter--;
+            if (startQuarter == 0) {
+                startQuarter = 4;
+                startYear--;
+            }
+            grade++;
+            if (startYear < delYear || (startYear == delYear && startQuarter < delQuarter)) {
+                return -1; // Invalid case (should not happen)
+            }
+        }
+        return grade;
+    }
+
+    // Utility to create deleted FC Code entries
+    private static Map<String, Object> createDeletedEntry(int year, int quarter, String fcCode) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("year", year);
+        map.put("quarter", quarter);
+        map.put("fc_code", fcCode);
+        return map;
+    }
+
+    private static Map<String, Object> createMainDataEntry(String fcCode, String... grades) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("fc_code", fcCode);
+        
+        for (int i = 0; i < grades.length; i++) {
+            map.put("Grade_" + (i + 1), grades[i]);
+        }
+        
+        return map;
+    }
+}
